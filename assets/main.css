@@ -10,5 +10,16 @@
 
 #panel-A {
 	background: yellow;
+	width: 100px;
 }
 	
+
+#panel-B {
+	background: #fed;
+	width: 100px;
+}
+
+#viewport {
+	background: pink;
+ width: auto;
+}
