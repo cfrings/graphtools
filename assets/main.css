@@ -4,7 +4,8 @@
 	background: #DEF;
 	display: flex;
 	flex-flow: row no-wrap;
-	flex-align: stretch;
+	align-items: stretch;
+	justify-content: space-between;
 }
 
 #panel-A {
