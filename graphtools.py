@@ -1,19 +1,30 @@
 from math import sqrt, sin, cos, pi
 
 class CubicVertex:
+	"""
+	"""
+
 	def __init__(self, graph, branch):
+		"""
+		"""
 		self.graph = graph
 		self.name = branch[0]
 		self.neighbours_names = list(branch[1:])
 		self.obey = 1
 
 	def switch_obedience(self):
+		"""
+		"""
 		self.obey = -self.obey
 
 	def set_to_disobey(self):
+		"""
+		"""
 		self.obey = -1
 
 	def set_to_obey(self):
+		"""
+		"""
 		self.obey = 1
 
 	def __repr__(self):
@@ -21,6 +32,9 @@ class CubicVertex:
 		return r
 
 	def __getitem__(self, n):
+		"""
+		Le mécanisme de lecture des attributs est détourné pour obtenir le nom d'un voisin par son index ou pour obtenir l'index d'un voisin par son nom.
+		"""
 		# print(f"Looking for neighbour {repr(n)} of vertex '{self.name}'.")
 		try:
 			return self.neighbours_names.index(n)
@@ -28,6 +42,10 @@ class CubicVertex:
 			return self.neighbours_names[n%3]
 
 	def next(self, n, spin=1):
+		"""
+Renvoie le nom du prochain voisin du nœud adjacent n dans le sens de rotation donné par spin.
+Le paramètre spin doit être 1 ou -1 (1 par défaut).
+		"""
 		return self[(self[n]+spin)%3]
 			
 class CubicGraph:
@@ -125,6 +143,7 @@ class Vector:
 		return Vector(self.x/r, self.y/r)
 
 	def __floordiv__(self, other):
+"""Teste la colinearite avec un autre vecteur."""
 		d = abs(self.x*other.y - self.y*other.x)/(abs(self)*abs(other))
 		return d<self.epsilon
 
