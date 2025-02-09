@@ -4,8 +4,10 @@
 	background: #DEF;
 	display: flex;
 	flex-flow: row no-wrap;
+	flex-align: stretch;
 }
 
 #panel-A {
+	background: yellow;
 }
 	
