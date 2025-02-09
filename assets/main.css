@@ -1,0 +1,11 @@
+#container {
+	position: absolute;
+	top, bottom, left, right: 0pt;
+	background: #DEF;
+	display: flex;
+	flex-flow: row no-wrap;
+}
+
+#panel-A {
+}
+	
