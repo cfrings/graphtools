@@ -1,6 +1,9 @@
 #container {
 	position: absolute;
-	top, bottom, left, right: 0pt;
+	top: 0pt;
+	bottom: 0pt; 
+	left: 0pt; 
+	right: 0pt;
 	background: #DEF;
 	display: flex;
 	flex-flow: row nowrap;
