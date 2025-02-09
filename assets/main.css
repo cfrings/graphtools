@@ -3,8 +3,8 @@
 	top, bottom, left, right: 0pt;
 	background: #DEF;
 	display: flex;
-	flex-flow: row no-wrap;
-	align-items: stretch;
+	flex-flow: row nowrap;
+	align_items: stretch;
 	justify-content: space-between;
 }
 
@@ -21,5 +21,5 @@
 
 #viewport {
 	background: pink;
- width: auto;
+ width: 100%;
 }
