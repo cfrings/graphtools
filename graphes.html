@@ -1,0 +1,1110 @@
+<!-- A FAIRE EN PREMIER LIEU :
+ - intégrer les textes d'aide dans la HTML (divs dédiés)
+ - séparer l'action (eg. déplacer un sommet, disponible dans plusieurs modes) des handlers
+-->
+
+<html>
+
+	<head>
+		<style type="text/css">
+			
+			
+			.hint {
+				font-family: monospace;
+				color: #AAAAAA;
+				user-select:none;
+			}
+			
+			body {
+				background: #A1A1AF;
+				font-family: Calibri, Roboto, Ubuntu, "Deja Vu Sans", "Lucida Sans Unicode", "Lucida Grande", sans-serif;
+				height: auto;
+			}
+			
+			dt {
+				font-weight: bold;
+			}
+			
+			#command_frame {
+				background-color: pink;
+				width: 25%;
+			}
+			
+			#data-panel {
+				background-color: yellow;
+				width: 25%;
+			}
+			
+			#modes_frame {
+				background-color: pink;
+				width: 100%;
+			}
+			
+			#hint {
+				
+			}
+			
+			#main {
+				background-color: cyan;
+				height: 100%;
+			}
+			
+			#svg-viewport {
+				background-color: white;
+			}
+			
+			#buttons {
+				display: flex;
+				flex-direction: column;
+				align-items: flex-middle;
+			}
+			
+			#buttons > button {
+				width: 100%;
+			}
+			
+			#hint {
+				height: 100%;
+			}
+			
+			.h-flex {
+				display: flex;
+				flex-direction: row;
+				align-items: flex-middle;
+			}
+
+			.h-flex > * {
+			}
+
+			.v-container {
+			}
+
+			.v-container > * {
+				width: 100%;
+			}
+
+			.v-flex {
+				display: flex;
+				flex-direction: column;
+			}
+
+			.v-flex > * {
+				width: 100%;
+			}
+			
+			/* Mode buttons */
+			
+			.command-button {
+				width: 100%;
+			}
+			
+			.command-button input[type="radio"] {
+				display: none;
+			}
+
+			.command-button label {
+				display: inline-block;
+				background-color: cyan;
+				padding: 4px 11px;
+				font-family: Arial;
+				font-size: 16px;
+				cursor: pointer;
+				width: 100%;
+			}
+
+			.command-button input[type="radio"]:checked+label {
+				background-color: #fff;
+			}
+			
+			
+			.editable {
+				stroke: #00000022;
+				stroke-width: 10pt;
+				transition: stroke .5s;
+			}
+			
+			.edge {
+				stroke: black;
+				stroke-width: 1pt;
+				transition: stroke .5s;
+			}
+			
+			.editable:hover {
+				stroke: #00000044;
+			}
+			
+			.edge:hover {
+				stroke: orange;
+			}
+			
+			.vertex {
+				fill: #BB5555;
+				stroke: black;
+				transition: fill .5s;
+			}
+			
+			.vertex:hover {
+				fill: #FF9999;
+			}
+			
+			.vertex.selected {
+				fill: #11DD11;
+			}
+			
+			.vertex.selected:hover {
+				fill: #33FF33;
+			}
+			
+			.invisible {
+				pointer-events: none;
+				visibility: hidden;
+			}
+			
+			
+			#drop_zone {
+				box-sizing: border-box;
+				padding: 10px;
+				font-weight: bold;
+				border: 5px solid #0000AA;
+				background-color: #0000AA;
+				color: white;
+				width: 100%;
+				height: 100px;
+			}
+			
+			#drop_zone:drop {
+				border: 5px dashed #0000AA;
+				background-color: white;
+				color: #0000AA;
+			}
+		</style>
+	</head>
+	
+	<body>
+		<div id="main" class="h-flex">
+			<div id="command_frame" class="v-flex" >
+				<div id="modes_frame" class="v-flex">
+
+					<div  class="command-button">
+					  <input type="radio" id="mode0" name="drone" value="0" onchange="setMode(0)"
+							 checked>
+					  <label for="mode0">Conception</label>
+					</div>
+
+					<div class="command-button">
+					  <input type="radio" id="mode1" name="drone" value="1" onchange="setMode(1)">
+					  <label for="mode1">Presentation</label>
+					</div>
+
+					<div class="command-button">
+					  <input type="radio" id="mode2" name="drone" value="2" onchange="setMode(2)">
+					  <label for="mode2">Analysis</label>
+					</div>
+
+					<div class="command-button">
+					  <input type="radio" id="mode3" name="drone" value="3" onchange="setMode(3)">
+					  <label for="mode3">Alternate paths</label>
+					</div>
+				</div>
+				<div id="hint">
+					<div id="conception-hint">
+						<dl> 
+							<dt>Create vertex</dt> 
+							<dd><code>Shift-click</code> on canvas.</dd> 
+							<dt>Select vertex</dt> 
+							<dd><code>Click</code> vertex.</dd> 
+							<dt>Unselect vertex</dt> 
+							<dd><code>Click</code> vertex or any empty space in canvas.</dd> 
+							<dt>Move vertex</dt> 
+							<dd>Drag and drop.</dd> 
+							<dt>Delete vertex</dt> 
+							<dd><code>Ctrl-click</code> vertex.</dd> 
+							<dt>Create edge</dt> 
+							<dd>Select start vertex and <code>Shift-click</code> end vertex.</dd> 
+							<dt>Create vertex and edge in one go</dt> 
+							<dd>Select start vertex and <code>Shift-click</code> empty space in canvas.</dd> 
+						</dl>
+					</div>
+					<div id="presentation-hint">
+						<dl> 
+							<dt>Move vertex</dt> 
+							<dd>Drag and drop.</dd> 
+							<dt>Open edge menu</dt> 
+							<dd>Right <code>click</code> on edge.</dd> 
+						</dl>
+					</div>
+					<div id="analysis-hint">
+						
+					</div>
+					<div id="alternate-path-hint">
+						
+					</div>
+				</div>
+				<div id="buttons">
+					<button onclick="newGraph();">New</button>
+					<button onclick="jsonify();">Save</button>
+					<button>Load</button>
+					<button onclick="equilibrate()">Equilibrate</button>
+			
+					
+					
+					
+					<div id="drop_zone" ondrop="dropHandler(event);" ondragover="dragOverHandler(event);">
+					  <p>Drag one or more files to this <i>drop zone</i>. 📁</p>
+					</div>
+						
+				</div>
+			</div>
+			<svg xmlns="http://www.w3.org/2000/svg" id="svg-viewport" width="100%" height="100%">
+				<g id="edge-context-menu">
+					<rect width="100" height="50" fill="blue" />
+					<circle cx="30" cy="30" r="20" fill="red" />
+				</g>
+			</svg>
+			<div id="data-panel">
+			</div>
+		</div>
+	</body>
+	
+	<script>
+		console.log("Starting...");
+		
+	
+		/* 
+		-------------------------------------------------------------------
+		 Eléménts HTML importants
+		------------------------------------------------------------------- 
+		*/
+	
+		const conceptionHint = document.getElementById("conception-hint");
+		const presentationHint = document.getElementById("presentation-hint");
+		const analysisHint = document.getElementById("analysis-hint");
+		const alternatePathHint = document.getElementById("alternate-path-hint");
+		const commandFrame = document.getElementById("command_frame");
+		
+		const edgeContextMenu = document.getElementById("edge-context-menu");
+		
+		function hideHTMLElement(target){
+			target.style.display = "none"
+		}
+		
+		function showHTMLElement(target){
+			target.style.display = "block"
+		}
+		
+		hideHTMLElement(conceptionHint);
+		hideHTMLElement(presentationHint);
+		hideHTMLElement(analysisHint);
+		hideHTMLElement(alternatePathHint);
+		
+		function hideContextMenu() {
+			edgeContextMenu.style.visibility = "hidden";
+			console.log("Hide context menu.");
+		}
+		
+		function showContextMenu() {
+			edgeContextMenu.style.visibility = "visible";
+			console.log("Show context menu.");
+		}
+		
+		hideContextMenu();
+		
+		/* 
+		-------------------------------------------------------------------
+		 Gestion des modes
+		-------------------------------------------------------------------
+			* 0 conception : structure du graphe et de la carte
+				shift-clic fond : crée sommet
+				click sommet : sélect
+				glisser-déposer : déplace
+				ctrl-click : efface
+				
+			* 1 présentation : 
+				allure et parmètres des arêtes (droite, circulaire, spline)
+				
+				- à terme, possibilité d'aligner sur une grille
+				- à terme, forme de l'arête :
+						* droite
+						* arc de cercle (centre rayon)
+						* arc de cercle (tangentes)
+						* bézier carrée
+				- à terme, alignement de certaines arêtes sur d'autres
+				- à terme, la possibilité de déplacer les sommets
+				
+				
+			* 2 analyse : outils d'analyse classique (taille, ordre, etc...)
+			
+			* 3 chemins alternés
+		
+		-------------------------------------------------------------------
+		*/
+		var mode = 0;
+	
+		function setMode(newMode) {
+			console.log("Changing mode from " + mode + " to " + newMode);
+			
+			
+			if (mode==0) {
+				// on quitte le mode création
+				
+				hideHTMLElement(conceptionHint);
+				
+				for (var vertex of vertices.values()) {
+					makeVertexUnAlterable(vertex);
+				}		
+				for (var edge of edges.values()) {
+					makeEdgeUnAlterable(edge);
+				}
+				viewport.removeEventListener('mousemove', conceptionOnMove);
+				viewport.removeEventListener('click', conceptionOnClick); 	
+
+			} else if (mode==1) {
+				// on quitte le mode présentation
+				
+				hideHTMLElement(presentationHint);
+				
+				for (vertex of vertices.values()) {
+					makeVertexUnMovable(vertex);
+				}	
+				for (var edge of edges.values()) {
+					makeEdgeUnModifiable(edge);
+				}
+				viewport.removeEventListener('mousemove', presentationOnMove);
+				viewport.removeEventListener('click', presentationOnClick); 	
+			}			
+			
+			mode = newMode;
+			
+			if (mode==0) {
+				// on entre en mode création
+				
+				showHTMLElement(conceptionHint);
+				
+				for (vertex of vertices.values()) {
+					makeVertexAlterable(vertex);
+				}	
+				for (var edge of edges.values()) {
+					makeEdgeAlterable(edge);
+				}
+							
+				viewport.addEventListener('mousemove', conceptionOnMove);
+				viewport.addEventListener('click', conceptionOnClick);
+			} else if (mode==1) {
+				// on entre en mode présentation
+				
+				showHTMLElement(presentationHint);
+				
+				for (vertex of vertices.values()) {
+					makeVertexMovable(vertex);
+				}	
+				for (var edge of edges.values()) {
+					makeEdgeModifiable(edge);
+				viewport.addEventListener('mousemove', presentationOnMove);
+				viewport.addEventListener('click', presentationOnClick);
+				}
+			}
+		}
+	
+		/*
+		-------------------------------------------------------------------
+		 Données du graphe
+		-------------------------------------------------------------------
+		*/
+		
+		/* 
+		**Indexes** : tout sommet et toute arête est indexé à la 
+		création. Cet index est associé aux éléments SVG et permet la
+		gestion des événements de souris.
+		*/
+		
+		var vertexCount = 0;
+		var edgeCount = 0;
+		
+		// Map des sommets et arêtes
+		// Les clés sont les indices, ces maps servent à retrouver les 
+		// sommets et arêtes concernées par une interaction à la souris
+		const vertices = new Map();
+		const edges = new Map();
+
+		// Map de maps : arêtes par sommet et voisin
+		// les clés et valeurs sont les objets
+		const relations = new Map();
+		
+		// Routines pour retrouver les objets sommet et arête associés à
+		// des événements de souris.
+		function eventVertex(event) {
+			return vertices.get(Number(event.target.getAttribute("index")));
+		}
+		
+		function eventEdge(event) {
+			return edges.get(Number(event.target.getAttribute("index")));
+		}
+	
+		/*
+		-------------------------------------------------------------------
+		 Gestion du SVG
+		-------------------------------------------------------------------
+		*/
+		
+		
+		// Variables utiles
+		const viewport = document.getElementById("svg-viewport");
+		const svgNS = viewport.namespaceURI;
+		
+		// Parmètres graphiques
+		const vertexRadius = 4;
+		const edgeThickness = 4;
+		
+		/*
+		-------------------------------------------------------------------
+		Gestion du déplacement d'un sommet.
+		
+		Le mouvement est déclanché par un clic sur le sommet, mais 
+		l'événement de déplacement est intercepté au niveau de l'image SVG, 
+		afin d'éviter des décrochements lorsque la souris quitte le sommet 
+		trop vite.
+		-------------------------------------------------------------------
+		*/
+		
+		// Mémorisation de l'élément à déplacer
+		var draggedVertex = false;
+
+		// Calcul des coordonnées SVG de l'événement souris
+		function getMousePosition(event) {
+			var CTM = viewport.getScreenCTM();
+			return {
+				x: (event.clientX - CTM.e) / CTM.a,
+				y: (event.clientY - CTM.f) / CTM.d
+			};
+		}
+		
+		// Déclenchement du déplacement lors d'un clic sur un sommet.
+		function startDrag(event) {
+			draggedVertex = eventVertex(event);
+		}
+		
+		// Déplacement de la souris dans la fenêtre SVG
+		function conceptionOnMove(event) {
+			// Si un sommet a été fini comme en déplacement...
+				event.preventDefault();
+			if (draggedVertex) {
+			
+				// [TODO] : utilité ? 
+				
+				var coord = getMousePosition(event);
+				draggedVertex.moveTo(coord.x, coord.y);
+				/*
+				// pas pratique
+				if (selectedVertex) {
+					selectedVertex.deselect();
+				}*/
+				selectionBlocked = true;
+				//selectedVertex = "blocked";
+			}
+		}
+		
+		function presentationOnMove(event) {
+			conceptionOnMove(event)
+		}
+		
+		/* 
+		-------------------------------------------------------------------
+		 Sélection de sommets
+		-------------------------------------------------------------------
+		*/
+		
+		// référence vers un sommet sélectionné
+		var selectedVertex = null;
+		
+		// lors du déplacement, les sélections sont bloquées
+		var selectionBlocked = false;
+		
+		// lors de l'affichage du menu contextuel d'une arête, le reste est bloqué
+		var contextMenuShown = false;
+
+		function selectVertex(vertex, shiftKey=false) {
+			
+			if (selectionBlocked) {
+				selectionBlocked = false;
+			} else {
+				if (selectedVertex) {			
+					if (selectedVertex == vertex) {
+						// clic sur sommet sélectionné : on désélectionne
+						vertex.deselect();
+					} else {
+						if (shiftKey) {
+							if (!(relations.get(selectedVertex).has(vertex))) {
+								createEdge(selectedVertex, vertex);
+							}
+						}
+						selectedVertex.deselect();
+						vertex.select();
+					} 
+				} else {
+					viewport.appendChild(vertex.svg);
+					vertex.select();
+				};
+			}
+		}
+
+		function createEdge(start, end) {
+			new Edge(start, end);
+		}
+
+		function vertexConceptionClickHandler(event) {
+			event.preventDefault();
+			event.stopPropagation();
+			var vertex = eventVertex(event);
+			
+			//if (!(draggedVertex)) {
+				if (event.ctrlKey) {
+				
+					eraseVertex(vertex);
+				} else {
+				
+					selectVertex(vertex, event.shiftKey);
+				}
+			//}
+		}
+
+
+		function edgeClickHandler(event) {
+			event.preventDefault();
+			event.stopPropagation();
+			
+			var edge = eventEdge(event);
+			if (event.ctrlKey) {
+				eraseEdge(edge);
+			} else
+			if (event.shiftKey) {
+				// Calcul du plus proche point de l'arête
+				coords = getMousePosition(event)
+				var point = edge.getProjection(coords);
+				console.log(edge.start, edge.end, point);
+				
+				vertex = new Vertex(point.x, point.y);
+				
+				new Edge(vertex, edge.start);
+				new Edge(vertex, edge.end);
+				
+				
+				if (selectedVertex) {
+					new Edge(vertex, selectedVertex);
+				}
+				
+				eraseEdge(edge);
+				vertex.select();
+			}
+		}
+		
+
+		function edgeRightClickHandler(event) {
+			console.log("Right click on edge.");
+			event.preventDefault();
+			event.stopPropagation();
+			
+			if (contextMenuShown) {
+				hideContextMenu();
+				contextMenuShown = false;
+			} else {
+				showContextMenu();
+				contextMenuShown = true;
+			}
+			
+			var edge = eventEdge(event);
+			
+			showContextMenu(edge);
+		}
+		
+		function eraseEdge(edge) {
+			if (selectedVertex) {
+				selectedVertex.deselect();
+			}
+			edge.linear.svg.remove();
+			edge.linear.editable.remove();
+			relations.get(edge.start).delete(edge.end);
+			relations.get(edge.end).delete(edge.start);
+			edges.delete(edge.index);
+		}
+
+		function endDrag(event) {
+			draggedVertex = false;
+		}
+			
+		function makeVertexAlterable(vertex) {
+			vertex.svg.addEventListener('mousedown', startDrag);
+			vertex.svg.addEventListener('mouseup', endDrag);
+			vertex.svg.addEventListener('click', vertexConceptionClickHandler);
+	
+		}
+			
+		function makeVertexMovable(vertex) {
+			vertex.svg.addEventListener('mousedown', startDrag);
+			vertex.svg.addEventListener('mouseup', endDrag);
+	
+		}
+		
+		function makeVertexUnAlterable(vertex) {
+			vertex.svg.removeEventListener('mousedown', startDrag);
+			vertex.svg.removeEventListener('mouseup', endDrag);
+			vertex.svg.removeEventListener('click', vertexConceptionClickHandler);
+		}
+		
+		function makeVertexUnMovable(vertex) {
+			vertex.svg.removeEventListener('mousedown', startDrag);
+			vertex.svg.removeEventListener('mouseup', endDrag);
+		}
+		
+		function makeEdgeAlterable(edge) {
+			edge.linear.svg.addEventListener('click', edgeClickHandler);
+			edge.linear.editable.addEventListener('click', edgeClickHandler);
+			edge.linear.editable.classList.remove("invisible");
+		}
+		
+		function makeEdgeUnAlterable(edge) {
+			edge.linear.svg.removeEventListener('click', edgeClickHandler);
+			edge.linear.editable.removeEventListener('click', edgeClickHandler);
+			edge.linear.editable.classList.add("invisible");
+		}
+		
+		
+		function makeEdgeModifiable(edge) {
+			edge.linear.svg.addEventListener('contextmenu', edgeRightClickHandler);
+			edge.linear.editable.addEventListener('right-click', edgeRightClickHandler);
+			edge.linear.editable.classList.remove("invisible");
+		}
+		
+		function makeEdgeUnModifiable(edge) {
+			edge.linear.svg.removeEventListener('contextmenu', edgeRightClickHandler);
+			edge.linear.editable.removeEventListener('contextmenu', edgeRightClickHandler);
+			edge.linear.editable.classList.add("invisible");
+		}
+		
+		
+		function conceptionOnClick(event)
+		{
+			event.preventDefault();
+			event.stopPropagation();
+			
+			if (event.shiftKey) {
+				coords = getMousePosition(event)
+				vertex = new Vertex(coords.x, coords.y, 0);
+				if (selectedVertex) {
+					new Edge(selectedVertex, vertex);
+					selectedVertex.deselect();
+					vertex.select();
+				}
+			} else {
+				if (selectedVertex) {
+					selectedVertex.deselect();
+				}
+			}
+		}
+		
+		
+		function presentationOnClick(event)
+		{
+			event.preventDefault();
+			event.stopPropagation();
+						
+			if (selectedVertex) {
+				selectedVertex.deselect();
+			}
+			
+		}
+		
+		
+		/* 
+		-------------------------------------------------------------------
+		 Structures de données et routines
+		-------------------------------------------------------------------
+		*/
+		
+		
+		// 
+		class Vertex {
+			constructor(x, y){
+				this.x = x;
+				this.y = y;
+				this.index = ++vertexCount;
+				
+				vertices.set(this.index, this);
+				relations.set(this, new Map());
+				
+				this.svg = document.createElementNS(svgNS,'circle');
+				this.svg.setAttributeNS(null, 'cx', x);
+				this.svg.setAttributeNS(null, 'cy', y);
+				this.svg.setAttributeNS(null, 'r', 2*vertexRadius);
+				this.svg.setAttribute('class', 'vertex');
+				this.svg.setAttribute('index', this.index);
+				
+				viewport.appendChild(this.svg);
+				// non, dépend du mode, doit être appelé dans setMode
+				makeVertexAlterable(this);
+				//this.select();
+			}
+			
+			
+			moveTo(x, y) {
+				this.x = x;
+				this.y = y;
+				this.svg.setAttributeNS(null, 'cx', x);
+				this.svg.setAttributeNS(null, 'cy', y);
+				
+				for (var edge of relations.get(this).values()) {
+					edge.redraw();
+				}
+			}
+			
+			
+			move(delta) {
+				this.x += delta.x;
+				this.y += delta.y;
+				this.svg.setAttributeNS(null, 'cx', this.x);
+				this.svg.setAttributeNS(null, 'cy', this.y);
+				
+				for (var edge of relations.get(this).values()) {
+					edge.redraw();
+				}
+			}
+			
+			
+			select() {
+				if (selectedVertex) {
+					selectedVertex.deselect();
+				}
+				this.svg.classList.add("selected");
+				selectedVertex = this;
+			}
+			
+			deselect() {
+				this.svg.classList.remove("selected");
+				selectedVertex = null;
+			}
+		}
+			
+		
+		//
+		function eraseVertex(vertex) {
+			// annule une éventuelle sélection
+			if (selectedVertex) {
+				selectedVertex.deselect();
+			}
+				
+			// efface toutes les arêtes vers tous les voisins
+			for (var n of relations.get(vertex).keys()) {
+				console.log(n);
+				console.log(relations.get(n));
+				console.log(relations.get(vertex));
+				edge = relations.get(vertex).get(n);
+				relations.get(n).delete(vertex);
+				eraseEdge(edge);
+			}
+			
+			relations.delete(vertex);
+			
+			// supprime de la liste des sommets
+			vertices.delete(vertex.index);
+			
+			// supprime la pastille
+			vertex.svg.remove();
+		}
+		
+
+		class Edge {
+			constructor(start, end){
+				this.start = start;
+				this.end = end;
+				this.index = ++edgeCount;
+				
+				edges.set(this.index, this);
+				
+				this.linear = new LinearEdge(this, start, end, false);
+				this.circular = null;
+				this.cBezier = null;
+				this.qBezier = null;
+				
+				
+				makeEdgeAlterable(this);
+				
+				viewport.appendChild(this.start.svg);
+				viewport.appendChild(this.end.svg);
+				
+				relations.get(start).set(end, this);
+				relations.get(end).set(start, this);
+				
+			}
+			
+			redraw () {
+				this.linear.redraw();
+				//this.circular.redraw();
+				//this.qBezier.redraw();
+				//this.cBezier.redraw();
+			}
+			
+			getProjection(coords) {
+				var vx = this.end.x - this.start.x;
+				var vy = this.end.y - this.start.y;
+				var wx = coords.x - this.start.x;
+				var wy = coords.y - this.start.y;
+				
+				var s = (vx*wx + vy*wy)/(vx*vx+vy*vy);
+				
+				return {
+					x: this.start.x + s*vx,
+					y: this.start.y + s*vy
+				}
+			}
+			
+			
+		}
+		
+		class LinearEdge {
+			constructor(parent, start, end) {
+				this.parent = parent;
+				this.start = start;
+				this.end = end;
+				this.editable = document.createElementNS(svgNS,'line');
+				this.editable.setAttribute('class', 'editable');
+				this.editable.setAttribute('index', parent.index);
+				this.svg = document.createElementNS(svgNS,'line');
+				this.svg.setAttribute('class', 'edge');
+				this.svg.setAttribute('index', parent.index);
+				this.redraw();
+				viewport.appendChild(this.editable);
+				viewport.appendChild(this.svg);
+			}
+			
+			redraw() {
+				
+				this.editable.setAttributeNS(null, 'x1', this.start.x);
+				this.editable.setAttributeNS(null, 'y1', this.start.y);
+				this.editable.setAttributeNS(null, 'x2', this.end.x);
+				this.editable.setAttributeNS(null, 'y2', this.end.y);
+				
+				this.svg.setAttributeNS(null, 'x1', this.start.x);
+				this.svg.setAttributeNS(null, 'y1', this.start.y);
+				this.svg.setAttributeNS(null, 'x2', this.end.x);
+				this.svg.setAttributeNS(null, 'y2', this.end.y);
+			}
+		}
+		
+		setMode(0);
+		
+		
+		function equilibrate() {
+			
+			const c1 = 0.0001;
+			const c2 = 50;
+			const c3 = 1;
+			const c4 = 100;
+			const M = 500;
+			
+			var deltas = new Map();
+			var f = 0;
+			
+			for (i=0; i<M; i++) {
+			
+				for (a of vertices.values()) {
+					var deltaX = 0;
+					var deltaY = 0;
+					var aRelations = relations.get(a);
+					for (b of vertices.values()) {
+						if (a != b) {
+							vectorX = a.x - b.x;
+							vectorY = a.y - b.y;
+							var d = Math.sqrt(vectorX*vectorX + vectorY*vectorY);
+							if (aRelations.has(b)) {
+								f = -c1 * Math.log(d/c2);
+							} else
+							if (d < c4) {
+								f = c3 / (d*d);
+							}
+							deltaX += f*vectorX/d;
+							deltaY += f*vectorY/d;
+						}
+					}
+					deltas.set(a, {x:deltaX, y:deltaY});
+				}
+				
+				for (var [a, delta] of deltas) {
+					a.move(delta);
+				}
+			}
+			
+		}
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		function jsonify()
+		{
+		
+			var tempVertexCount = 0;
+		
+			json = {
+				vertices: [],
+				edges: []
+			}
+			
+			var vertexTranslationTable = new Map();
+			for (var i=0; i<=vertexCount; i++) {
+				if (vertices.has(i)) {
+					console.log(i);
+					vertex = vertices.get(i);
+					vertexTranslationTable.set(vertex, ++tempVertexCount);
+					jsonVertex = {
+						x: vertex.x,
+						y: vertex.y
+					};
+					json.vertices.push(jsonVertex);
+				}
+			}
+			for (var i=0; i<=edgeCount; i++) {
+				if (edges.has(i)) {
+					edge = edges.get(i);
+					jsonEdge = {
+						start: vertexTranslationTable.get(edge.start),
+						end: vertexTranslationTable.get(edge.end)
+					};
+					json.edges.push(jsonEdge);
+				}
+			}
+			console.log(JSON.stringify(json, null, 4));
+
+
+			// Lancer le téléchargement
+			// https://stackoverflow.com/a/20194533
+
+			
+			var a = window.document.createElement('a');
+			
+			a.href = window.URL.createObjectURL(new Blob([JSON.stringify(json, null, 4)], {type: 'text/csv'}));
+			
+			a.download = 'graph.json';
+
+			// Append anchor to body.
+			document.body.appendChild(a);
+			a.click();
+
+			// Remove anchor from body
+			document.body.removeChild(a);
+			
+		}
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		// https://stackoverflow.com/questions/3665115/how-to-create-a-file-in-memory-for-user-to-download-but-not-through-server
+		function download(filename, text) {
+			var element = document.createElement('a');
+			element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+			element.setAttribute('download', filename);
+
+			element.style.display = 'none';
+			document.body.appendChild(element);
+
+			element.click();
+
+			document.body.removeChild(element);
+		}
+			
+			
+			
+			
+		function dropHandler(ev) {
+			console.log("File(s) dropped");
+
+			// Prevent default behavior (Prevent file from being opened)
+			ev.preventDefault();
+
+			if (ev.dataTransfer.items) {
+				// Use DataTransferItemList interface to access the file(s)
+				[...ev.dataTransfer.items].forEach((item, i) => {
+					// If dropped items aren't files, reject them
+					if (item.kind === "file") {
+						const file = item.getAsFile();
+						importSaveFile(file);
+					}
+				});
+			} else {
+				// Use DataTransfer interface to access the file(s)
+				[...ev.dataTransfer.files].forEach(
+				(file, i) => 
+					{
+						importSaveFile(file);
+					}
+				);
+			}
+		}
+
+
+		function dragOverHandler(ev) {
+			console.log("File(s) in drop zone");
+
+			// Prevent default behavior (Prevent file from being opened)
+			ev.preventDefault();
+		}
+
+
+		/**
+		 * Import a graph from a json file.
+		 */
+		function importSaveFile(file) {
+
+			var reader = new FileReader();
+			reader.onload = function(event) {
+				newGraph();
+				console.log(event.target.result);
+				data = JSON.parse(event.target.result);
+				for (var vertex of data.vertices) {
+					new Vertex(vertex.x, vertex.y);
+				}
+				for (var edge of data.edges) {
+					var start = vertices.get(edge.start);
+					var end = vertices.get(edge.end);
+					new Edge(start, end);
+				}
+			}
+			reader.readAsText(file);
+		}
+
+		/**
+		 * Create new (empty) graph.
+		 */
+		function newGraph() {
+			for (var vertex of vertices.values()) {
+				eraseVertex(vertex);
+			}
+			vertexCount = 0;
+			edgeCount = 0;
+		}
+	</script>
+</html>
